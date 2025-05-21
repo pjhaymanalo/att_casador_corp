@@ -53,6 +53,19 @@
             font-size: 1.2rem;
             color: #333;
         }
+        .low-stock { color: #ff851b; }
+        .in-stock { color: #2ecc40; }
+        .product-card {
+            background: #f5faff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+            padding: 2rem 3rem;
+            text-align: center;
+            min-width: 220px;
+        }
+        .product-card.low-stock {
+            border: 2px solid #ffae42;
+        }
     </style>
 </head>
 <body>
@@ -68,6 +81,63 @@
     <div class="landing-content">
         <h1>Welcome to Casador Agri Analytics!</h1>
         <p>Use the navigation bar above to access your dashboard and analytics charts.</p>
+        <form method="get" style="margin: 2rem 0 2.5rem 0; display: flex; gap: 1rem; justify-content: center;">
+            <input type="text" name="product_search" placeholder="Search Product..." value="{{ request.args.get('product_search', '') }}" style="padding: 0.5rem 1rem; border-radius: 5px; border: 1px solid #ccc; min-width: 200px;">
+            <input type="date" name="sales_date" value="{{ request.args.get('sales_date', '') }}" style="padding: 0.5rem 1rem; border-radius: 5px; border: 1px solid #ccc;">
+            <button type="submit" style="padding: 0.5rem 1.5rem; border-radius: 5px; background: #0074d9; color: #fff; border: none;">Filter</button>
+        </form>
+        {% if product_search_results|length == 1 %}
+        {% set prod = product_search_results[0] %}
+        <div style="display: flex; justify-content: center; margin-bottom: 2.5rem;">
+            <div class="product-card{% if prod.stock_status == 'Low Stock' %} low-stock{% endif %}">
+                <div style="font-size: 2rem;">💰</div>
+                <div style="font-size: 1.1rem; color: #888;">{{ prod.product_name }}</div>
+                <div style="font-size: 1.5rem; font-weight: bold; color: #003366; margin: 0.5rem 0;">
+                    Status: <span class="{% if prod.stock_status == 'Low Stock' %}low-stock{% else %}in-stock{% endif %}">{{ prod.stock_status }}</span>
+                </div>
+                <div style="font-size: 1.25rem; color: #555;">Quantity: <span style="font-weight: bold;">{{ prod.quantity }}</span></div>
+            </div>
+        </div>
+        {% endif %}
+        <div style="display: flex; justify-content: center; gap: 2.5rem; margin-top: 2.5rem;">
+            <div style="background: #f5faff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 1.5rem 2.5rem; text-align: center; min-width: 160px;">
+                <div style="font-size: 2rem;">💰</div>
+                <div style="font-size: 1.1rem; color: #888;">Total Sales</div>
+                <div style="font-size: 2rem; font-weight: bold; color: #003366;">₱{{ '{:,.0f}'.format(total_sales) }}</div>
+            </div>
+            <div style="background: #f5faff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 1.5rem 2.5rem; text-align: center; min-width: 160px;">
+                <div style="font-size: 2rem;">📦</div>
+                <div style="font-size: 1.1rem; color: #888;">Total Products</div>
+                <div style="font-size: 2rem; font-weight: bold; color: #003366;">{{ '{:,.0f}'.format(total_products) }}</div>
+            </div>
+            <div style="background: #f5faff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); padding: 1.5rem 2.5rem; text-align: center; min-width: 160px;">
+                <div style="font-size: 2rem;">⚠️</div>
+                <div style="font-size: 1.1rem; color: #888;">Low Stock Items</div>
+                <div style="font-size: 2rem; font-weight: bold; color: #003366;">{{ '{:,.0f}'.format(low_stock_items) }}</div>
+            </div>
+        </div>
+        {% if product_search_results %}
+        <div style="margin: 2rem auto; max-width: 600px;">
+            <table style="width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.07);">
+                <thead style="background: #f5faff;">
+                    <tr>
+                        <th style="padding: 0.75rem; text-align: left;">Product Name</th>
+                        <th style="padding: 0.75rem; text-align: left;">Stock Status</th>
+                        <th style="padding: 0.75rem; text-align: left;">Quantity</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prod in product_search_results %}
+                    <tr {% if prod.stock_status == 'Low Stock' %}style="background: #fff3cd;"{% endif %}>
+                        <td style="padding: 0.75rem;">{{ prod.product_name }}</td>
+                        <td style="padding: 0.75rem;">{{ prod.stock_status }}</td>
+                        <td style="padding: 0.75rem;">{{ prod.quantity }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
     </div>
 </body>
 </html> 
